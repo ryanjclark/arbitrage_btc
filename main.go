@@ -1,41 +1,22 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"os"
 
-	ws "github.com/gorilla/websocket"
-	coinbasepro "github.com/preichenberger/go-coinbasepro/v2"
+	"github.com/arbitrage_btc/extract"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	var wsDialer ws.Dialer
-	wsConn, _, err := wsDialer.Dial("wss://ws-feed.pro.coinbase.com", nil)
+	err := godotenv.Load("dev.env")
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println("Warning: .env file not found")
 	}
 
-	subscribe := coinbasepro.Message{
-		Type: "subscribe",
-		Channels: []coinbasepro.MessageChannel{
-			{
-				Name: "ticker",
-				ProductIds: []string{
-					"BTC-USD",
-				},
-			},
-		},
-	}
-	if err := wsConn.WriteJSON(subscribe); err != nil {
-		fmt.Println(err.Error())
-	}
+	var forexURL = os.Getenv("TRADER_MADE_URL")
+	var forexKey = os.Getenv("TRADER_MADE_API")
 
-	for true {
-		message := coinbasepro.Message{}
-		if err := wsConn.ReadJSON(&message); err != nil {
-			fmt.Println(err.Error())
-			break
-		}
-
-		fmt.Println(message.Price)
-	}
+	EURUSDStreamer := extract.Streamer{HostURL: forexURL, Path: "/feed", Key: forexKey, Symbol: "EURUSD"}
+	EURUSDStreamer.GetPrice()
 }
