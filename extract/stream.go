@@ -13,15 +13,12 @@ import (
 )
 
 type Streamer struct {
-	HostURL      string
-	Path         string
-	Key          string
-	Symbol       string
-	StartMessage string
+	HostURL string
+	Path    string
+	Key     string
 }
 
-func (s Streamer) GetPrice() {
-
+func (s Streamer) GetPrice(symbol string) {
 	flag.Parse()
 	log.SetFlags(0)
 
@@ -32,7 +29,8 @@ func (s Streamer) GetPrice() {
 	u := url.URL{Scheme: "wss", Host: s.HostURL, Path: s.Path}
 	log.Printf("connecting to %s", u.String())
 
-	c, resp, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	dialer := websocket.Dialer{HandshakeTimeout: 120 * time.Second}
+	c, resp, err := dialer.Dial(u.String(), nil)
 	if err != nil {
 		log.Printf("handshake failed with status %d", resp.StatusCode)
 		log.Fatal("dial:", err)
@@ -46,13 +44,13 @@ func (s Streamer) GetPrice() {
 		for {
 			_, message, err := c.ReadMessage()
 			if err != nil {
-				log.Println("read:", err)
+				log.Println("read: ", err)
 				return
 			}
 			log.Printf("recv: %s", message)
 			if string(message) == "Connected" {
 				log.Printf("Send Sub Details: %s", message)
-				messageOut <- fmt.Sprintf("{\"userKey\":\"%s\", \"symbol\":\"%s\"}", s.Key, s.Symbol)
+				messageOut <- fmt.Sprintf("{\"userKey\":\"%s\", \"symbol\":\"%s\"}", s.Key, symbol)
 			}
 		}
 	}()
@@ -93,5 +91,13 @@ func (s Streamer) GetPrice() {
 			}
 			return
 		}
+	}
+}
+
+func NewStreamer(hostURL string, path string, key string) *Streamer {
+	return &Streamer{
+		HostURL: hostURL,
+		Path:    path,
+		Key:     key,
 	}
 }

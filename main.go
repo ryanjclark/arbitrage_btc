@@ -17,6 +17,6 @@ func main() {
 	var forexURL = os.Getenv("TRADER_MADE_URL")
 	var forexKey = os.Getenv("TRADER_MADE_API")
 
-	EURUSDStreamer := extract.Streamer{HostURL: forexURL, Path: "/feed", Key: forexKey, Symbol: "EURUSD"}
-	EURUSDStreamer.GetPrice()
+	EURUSDStreamer := extract.NewStreamer(forexURL, "/feed", forexKey)
+	EURUSDStreamer.GetPrice("EURUSD")
 }
