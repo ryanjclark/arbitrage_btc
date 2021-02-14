@@ -12,13 +12,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Streamer struct {
+type TraderMadeSocket struct {
 	HostURL string
 	Path    string
 	Key     string
 }
 
-func (s Streamer) GetPrice(symbol string) {
+func (s *TraderMadeSocket) GetPrice(symbol string) {
 	flag.Parse()
 	log.SetFlags(0)
 
@@ -94,8 +94,8 @@ func (s Streamer) GetPrice(symbol string) {
 	}
 }
 
-func NewStreamer(hostURL string, path string, key string) *Streamer {
-	return &Streamer{
+func NewTraderMadeSocket(hostURL string, path string, key string) *TraderMadeSocket {
+	return &TraderMadeSocket{
 		HostURL: hostURL,
 		Path:    path,
 		Key:     key,
