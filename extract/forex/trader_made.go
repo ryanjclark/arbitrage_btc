@@ -1,4 +1,4 @@
-package extract
+package forex
 
 import (
 	"fmt"
@@ -19,8 +19,8 @@ type TraderMadeSocket struct {
 	Key     string
 }
 
-// GetPrice streams the price data from Trader Made given a ticker symbol.
-func (s *TraderMadeSocket) GetPrice(symbol string) {
+// GetPriceStream streams the price data from Trader Made given a ticker symbol.
+func (s *TraderMadeSocket) GetPriceStream(symbol string) {
 	messageOut := make(chan string)
 
 	interrupt := make(chan os.Signal, 1)

@@ -1,10 +1,10 @@
-package extract
+package forex
 
 import "github.com/gorilla/websocket"
 
-// Socket interface implements a function to connect
+// ForexStreamer interface implements a function to connect
 // and get the price of a given ticker.
-type Socket interface {
+type ForexStreamer interface {
 	connectToSocket() *websocket.Conn
 	GetPrice(string)
 }
