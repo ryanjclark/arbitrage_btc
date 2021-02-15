@@ -1,7 +1,6 @@
 package extract
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/url"
@@ -12,29 +11,22 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// TraderMadeSocket holds the URL, url Path, and API key to
+// connect to Trader Made forex stream.
 type TraderMadeSocket struct {
 	HostURL string
 	Path    string
 	Key     string
 }
 
+// GetPrice streams the price data from Trader Made given a ticker symbol.
 func (s *TraderMadeSocket) GetPrice(symbol string) {
-	flag.Parse()
-	log.SetFlags(0)
-
 	messageOut := make(chan string)
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
-	u := url.URL{Scheme: "wss", Host: s.HostURL, Path: s.Path}
-	log.Printf("connecting to %s", u.String())
 
-	dialer := websocket.Dialer{HandshakeTimeout: 120 * time.Second}
-	c, resp, err := dialer.Dial(u.String(), nil)
-	if err != nil {
-		log.Printf("handshake failed with status %d", resp.StatusCode)
-		log.Fatal("dial:", err)
-	}
+	c := s.connectToSocket()
 	defer c.Close()
 
 	done := make(chan struct{})
@@ -44,7 +36,7 @@ func (s *TraderMadeSocket) GetPrice(symbol string) {
 		for {
 			_, message, err := c.ReadMessage()
 			if err != nil {
-				log.Println("read: ", err)
+				log.Println("read error: ", err)
 				return
 			}
 			log.Printf("recv: %s", message)
@@ -66,23 +58,21 @@ func (s *TraderMadeSocket) GetPrice(symbol string) {
 			log.Printf("Send Message %s", m)
 			err := c.WriteMessage(websocket.TextMessage, []byte(m))
 			if err != nil {
-				log.Println("write:", err)
+				log.Println("write message error: ", err)
 				return
 			}
 		case t := <-ticker.C:
 			err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
 			if err != nil {
-				log.Println("write:", err)
+				log.Println("write: ", err)
 				return
 			}
 		case <-interrupt:
 			log.Println("interrupt")
 
-			// Cleanly close the connection by sending a close message and then
-			// waiting (with timeout) for the server to close the connection.
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
-				log.Println("write close:", err)
+				log.Println("error closing message: ", err)
 				return
 			}
 			select {
@@ -94,6 +84,19 @@ func (s *TraderMadeSocket) GetPrice(symbol string) {
 	}
 }
 
+func (s *TraderMadeSocket) connectToSocket() *websocket.Conn {
+	u := url.URL{Scheme: "wss", Host: s.HostURL, Path: s.Path}
+	log.Printf("connecting to %s", u.String())
+
+	c, resp, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		log.Printf("handshake failed with status %d", resp.StatusCode)
+		log.Fatal("conn error: ", err)
+	}
+	return c
+}
+
+// NewTraderMadeSocket creates a pointer to a new TraderMadeSocket.
 func NewTraderMadeSocket(hostURL string, path string, key string) *TraderMadeSocket {
 	return &TraderMadeSocket{
 		HostURL: hostURL,
