@@ -11,22 +11,17 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// CoinbaseSocket holds the socket URL to connect to.
 type CoinbaseSocket struct {
 	HostURL string
 }
 
+// GetPrice streams the price data from Coinbase given a ticker symbol.
 func (s *CoinbaseSocket) GetPrice(symbol string) {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
-	u := url.URL{Scheme: "wss", Host: s.HostURL}
-	log.Printf("connecting to %s", u.String())
 
-	dialer := websocket.Dialer{HandshakeTimeout: 120 * time.Second}
-	c, resp, err := dialer.Dial(u.String(), nil)
-	if err != nil {
-		log.Printf("handshake failed with status %d", resp.StatusCode)
-		log.Fatal("dial:", err)
-	}
+	c := s.connectToSocket()
 	defer c.Close()
 
 	msg := fmt.Sprintf("{\"type\": \"subscribe\", \"product_ids\": [\"%s\"], \"channels\": [{\"name\": \"ticker\"}]}", symbol)
@@ -41,7 +36,7 @@ func (s *CoinbaseSocket) GetPrice(symbol string) {
 		for {
 			_, message, err := c.ReadMessage()
 			if err != nil {
-				log.Println("read: ", err)
+				log.Println("read error: ", err)
 				return
 			}
 			log.Printf("recv: %s", message)
@@ -55,11 +50,9 @@ func (s *CoinbaseSocket) GetPrice(symbol string) {
 		case <-interrupt:
 			log.Println("interrupt")
 
-			// Cleanly close the connection by sending a close message and then
-			// waiting (with timeout) for the server to close the connection.
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
-				log.Println("write close:", err)
+				log.Println("error closing message: ", err)
 				return
 			}
 			select {
@@ -71,6 +64,19 @@ func (s *CoinbaseSocket) GetPrice(symbol string) {
 	}
 }
 
+func (s *CoinbaseSocket) connectToSocket() *websocket.Conn {
+	u := url.URL{Scheme: "wss", Host: s.HostURL}
+	log.Printf("connecting to %s", u.String())
+
+	c, resp, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		log.Printf("handshake failed with status %d", resp.StatusCode)
+		log.Fatal("conn error: ", err)
+	}
+	return c
+}
+
+// NewCoinbaseSocket creates a pointer to a new CoinbaseSocket.
 func NewCoinbaseSocket(hostURL string) *CoinbaseSocket {
 	return &CoinbaseSocket{
 		HostURL: hostURL,
