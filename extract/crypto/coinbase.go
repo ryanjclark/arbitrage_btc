@@ -1,4 +1,4 @@
-package extract
+package crypto
 
 import (
 	"fmt"
@@ -16,8 +16,8 @@ type CoinbaseSocket struct {
 	HostURL string
 }
 
-// GetPrice streams the price data from Coinbase given a ticker symbol.
-func (s *CoinbaseSocket) GetPrice(symbol string) {
+// GetPriceStream streams the price data from Coinbase given a ticker symbol.
+func (s *CoinbaseSocket) GetPriceStream(symbol string) {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
