@@ -33,13 +33,12 @@ func (s *CoinbaseSocket) GetPriceStream(symbol string) {
 
 	go func() {
 		defer close(done)
+		message := TickerMessage{}
 		for {
-			_, message, err := c.ReadMessage()
-			if err != nil {
-				log.Println("read error: ", err)
-				return
+			if err := c.ReadJSON(&message); err != nil {
+				log.Printf("error reading payload into message: %s", err)
+				break
 			}
-			log.Printf("recv: %s", message)
 		}
 	}()
 
