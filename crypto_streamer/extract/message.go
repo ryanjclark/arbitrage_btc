@@ -1,4 +1,4 @@
-package crypto
+package extract
 
 // TickerMessage holds the payload from the crypto
 type TickerMessage struct {

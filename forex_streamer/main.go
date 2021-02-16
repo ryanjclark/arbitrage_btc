@@ -4,8 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/arbitrage_btc/extract/crypto"
-	"github.com/arbitrage_btc/extract/forex"
+	"github.com/arbitrage_btc/forex_streamer/extract"
 	"github.com/joho/godotenv"
 )
 
@@ -18,8 +17,5 @@ func main() {
 	var forexURL = os.Getenv("TRADER_MADE_URL")
 	var forexKey = os.Getenv("TRADER_MADE_API")
 
-	_ = forex.NewTraderMadeSocket(forexURL, "/feed", forexKey)
-
-	var bitcoinURL = os.Getenv("COINBASE_URL")
-	_ = crypto.NewCoinbaseSocket(bitcoinURL)
+	_ = extract.NewTraderMadeSocket(forexURL, "/feed", forexKey)
 }

@@ -1,4 +1,4 @@
-package crypto
+package extract
 
 import "github.com/gorilla/websocket"
 

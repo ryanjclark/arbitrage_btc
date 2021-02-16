@@ -1,4 +1,4 @@
-package forex
+package extract
 
 import (
 	"fmt"
