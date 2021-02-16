@@ -39,7 +39,6 @@ func (s *CoinbaseSocket) GetPriceStream(symbol string) {
 				log.Printf("error reading payload into message: %s", err)
 				break
 			}
-			log.Printf("recv struct: %s", message)
 		}
 	}()
 
