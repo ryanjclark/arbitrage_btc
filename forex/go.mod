@@ -1,4 +1,4 @@
-module github.com/ryanjclark/arbitrage_btc/forex_streamer
+module github.com/ryanjclark/arbitrage_btc/forex
 
 go 1.14
 
