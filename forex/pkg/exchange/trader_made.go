@@ -20,7 +20,7 @@ type TraderMadeSocket struct {
 }
 
 // GetPriceStream streams the price data from Trader Made given a ticker symbol.
-func (s *TraderMadeSocket) GetPriceStream(symbol string) {
+func (s *TraderMadeSocket) GetPriceStream(symbol string, exchangeTicker chan []byte) {
 	messageOut := make(chan string)
 
 	interrupt := make(chan os.Signal, 1)
@@ -39,11 +39,11 @@ func (s *TraderMadeSocket) GetPriceStream(symbol string) {
 				log.Println("read error: ", err)
 				return
 			}
-			log.Printf("recv: %s", message)
 			if string(message) == "Connected" {
 				log.Printf("Send Sub Details: %s", message)
 				messageOut <- fmt.Sprintf("{\"userKey\":\"%s\", \"symbol\":\"%s\"}", s.Key, symbol)
 			}
+			exchangeTicker <- message
 		}
 	}()
 
