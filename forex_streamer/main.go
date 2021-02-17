@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/arbitrage_btc/forex_streamer/extract"
 	"github.com/joho/godotenv"
+	"github.com/ryanjclark/arbitrage_btc/forex_streamer/extract"
 )
 
 func main() {
