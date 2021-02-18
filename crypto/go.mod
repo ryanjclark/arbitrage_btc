@@ -1,4 +1,4 @@
-module github.com/arbitrage_btc/crypto_streamer
+module github.com/ryanjclark/arbitrage_btc/crypto
 
 go 1.15
 

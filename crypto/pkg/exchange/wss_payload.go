@@ -1,7 +1,8 @@
-package extract
+package exchange
 
-// TickerMessage holds the payload from the crypto
-type TickerMessage struct {
+// WSSPayload holds the payload from Coinbase's websocket
+// channel called 'ticker'.
+type WSSPayload struct {
 	Type       string   `json:"type"`
 	TradeID    int      `json:"trade_id"`
 	Sequence   int      `json:"sequence"`
