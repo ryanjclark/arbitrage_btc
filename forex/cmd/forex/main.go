@@ -17,8 +17,7 @@ func gRPCStub(msg *exchange.WSSPayload) {
 }
 
 func main() {
-	err := godotenv.Load("dev.env")
-	if err != nil {
+	if err := godotenv.Load("dev.env"); err != nil {
 		log.Println("Warning: .env file not found")
 	}
 
