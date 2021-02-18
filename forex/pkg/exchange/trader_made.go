@@ -30,6 +30,8 @@ func (s *TraderMadeStreamer) initSocketConnection() (err error) {
 }
 
 func (s *TraderMadeStreamer) subscribe() (err error) {
+	log.Println("subscribing to stream")
+
 	msg := fmt.Sprintf("{\"userKey\":\"%s\", \"symbol\":\"%s\"}", s.forexConfig.APIKey, s.forexConfig.Symbols[0])
 	if err := s.Conn.WriteMessage(websocket.TextMessage, []byte(msg)); err != nil {
 		log.Println(err)
