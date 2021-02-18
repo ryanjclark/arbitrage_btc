@@ -17,7 +17,7 @@ func main() {
 		log.Println("Warning: .env file not found")
 	}
 
-	var bitcoinURL = os.Getenv("COINBASE_URL")
+	var coinbaseURL = os.Getenv("COINBASE_URL")
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
@@ -26,14 +26,14 @@ func main() {
 
 	c := make(chan *exchange.WSSPayload)
 
-	btcStreamer := exchange.NewCoinbaseSocket(bitcoinURL)
+	streamer := exchange.NewCoinbaseStreamer(coinbaseURL)
 
-	exchange.InitConnection(btcStreamer)
-	defer btcStreamer.Conn.Close()
+	exchange.InitConnection(streamer)
+	defer streamer.Conn.Close()
 
-	btcStreamer.Subscribe("BTC-USD")
+	streamer.Subscribe("BTC-USD")
 
-	go btcStreamer.GetPriceStream(c, done)
+	go streamer.GetPriceStream(c, done)
 	go futureGRPCFunc(c)
 
 	for {
@@ -43,7 +43,7 @@ func main() {
 		case <-interrupt:
 			log.Println("interrupt")
 
-			err := btcStreamer.Conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			err := streamer.Conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
 				log.Println("error closing message: ", err)
 				return

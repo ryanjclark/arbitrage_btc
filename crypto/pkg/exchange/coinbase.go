@@ -4,20 +4,18 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"sync"
 
 	"github.com/gorilla/websocket"
 )
 
-//
-type CoinbaseSocket struct {
+// CoinbaseStreamer holds the URL to connect to and the websocket connection.
+type CoinbaseStreamer struct {
 	HostURL string
-	Mu      sync.Mutex
 	Conn    *websocket.Conn
 }
 
-//
-func (s *CoinbaseSocket) GetPriceStream(c chan *WSSPayload, done chan struct{}) {
+// GetPriceStream reads the JSON from the connection and hydrates the payload.
+func (s *CoinbaseStreamer) GetPriceStream(c chan *WSSPayload, done chan struct{}) {
 	for {
 		message := WSSPayload{}
 		if err := s.Conn.ReadJSON(&message); err != nil {
@@ -28,9 +26,16 @@ func (s *CoinbaseSocket) GetPriceStream(c chan *WSSPayload, done chan struct{}) 
 	}
 }
 
-func InitConnection(s *CoinbaseSocket) {
-	s.Mu.Lock()
-	defer s.Mu.Unlock()
+// Subscribe sends the subscription message to trigger the websocket channel
+func (s *CoinbaseStreamer) Subscribe(symbol string) {
+	msg := fmt.Sprintf("{\"type\": \"subscribe\", \"product_ids\": [\"%s\"], \"channels\": [{\"name\": \"ticker\"}]}", symbol)
+	if err := s.Conn.WriteMessage(websocket.TextMessage, []byte(msg)); err != nil {
+		log.Print(err)
+	}
+}
+
+// InitConnection connects to the HostURL and gives the CoinbaseStreamer the connection.
+func InitConnection(s *CoinbaseStreamer) {
 	u := url.URL{Scheme: "wss", Host: s.HostURL}
 	log.Printf("connecting to %s", u.String())
 
@@ -42,16 +47,9 @@ func InitConnection(s *CoinbaseSocket) {
 	s.Conn = conn
 }
 
-func (s *CoinbaseSocket) Subscribe(symbol string) {
-	msg := fmt.Sprintf("{\"type\": \"subscribe\", \"product_ids\": [\"%s\"], \"channels\": [{\"name\": \"ticker\"}]}", symbol)
-	if err := s.Conn.WriteMessage(websocket.TextMessage, []byte(msg)); err != nil {
-		log.Print(err)
-	}
-}
-
-// NewCoinbaseSocket creates a pointer to a new CoinbaseSocket.
-func NewCoinbaseSocket(hostURL string) *CoinbaseSocket {
-	return &CoinbaseSocket{
+// NewCoinbaseStreamer creates a pointer to a new CoinbaseStreamer.
+func NewCoinbaseStreamer(hostURL string) *CoinbaseStreamer {
+	return &CoinbaseStreamer{
 		HostURL: hostURL,
 	}
 }
